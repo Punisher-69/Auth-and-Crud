@@ -1,12 +1,12 @@
 import axios from "axios";
 const Dummy_Url = import.meta.env.VITE_PRODUCTS_URL;
-console.log(Dummy_Url);
+
 const api = axios.create({
   
 });
 
 export const getData = () => {
-  return api.get(`${Dummy_Url}/products?limit=10`);
+  return api.get(`${Dummy_Url}/products?limit=5`);
 };
 
 export const deletePost = (id) => {
