@@ -1,17 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { getData, postApi } from "../AxiosApi/Axios";
-import { Card, CardBody } from "@heroui/react";
+import { Card, CardBody, Toast } from "@heroui/react";
 import { Button } from "@heroui/react";
 import { Input } from "@heroui/react";
 import { deletePost } from "../AxiosApi/Axios";
 import { updateApi } from "../AxiosApi/Axios";
 import { useNavigate } from "react-router-dom";
+
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@heroui/react";
+import { displayToast } from "./Toast";
+
 function Data() {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const token = JSON.parse(localStorage.getItem("access_token"));
   const navigate = useNavigate();
   if (!token) {
-    navigate("/")
-  } 
+    navigate("/");
+  }
   const [items, setItems] = useState([]);
   const [newData, setNewData] = useState({
     title: "",
@@ -20,7 +33,7 @@ function Data() {
   const [updateData, setUpdateData] = useState({});
   const getApiData = async () => {
     const res = await getData();
-    console.log(res.data.products);
+
     setItems(res.data.products);
   };
   useEffect(() => {
@@ -45,22 +58,24 @@ function Data() {
         });
         setNewData({ title: "", body: "" });
         setUpdateData({});
+        displayToast("Editted successfully");
       }
     } catch ({ error }) {
       console.log(error);
     }
   };
-  const addData = async (e) => {
+  const addData = async () => {
     const res = await postApi(newData);
     if (res.status === 201) {
       setItems([...items, res.data]);
       setNewData({ title: "", description: "" });
+      displayToast("Added Succesfully");
     }
   };
   const handleSubmit = (e) => {
     e.preventDefault();
     const action = e.nativeEvent.submitter.value;
-    console.log(action);
+
     if (action === "Add") {
       addData();
     } else {
@@ -80,6 +95,7 @@ function Data() {
     });
   };
   const handleDelete = async (id) => {
+    console.log(id);
     try {
       const res = await deletePost(id);
       if (res.status === 200) {
@@ -87,13 +103,12 @@ function Data() {
           return curr.id !== id;
         });
         setItems(newUpdatedData);
-      } else {
-        console.log(error);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
+  
 
   const handleLogOut = () => {
     localStorage.removeItem("access_token");
@@ -169,13 +184,47 @@ function Data() {
                         >
                           Edit
                         </Button>
+
                         <Button
-                          color="warning"
                           variant="shadow"
-                          onPress={() => handleDelete(id)}
+                          color="warning"
+                          onPress={onOpen}
                         >
                           Delete
                         </Button>
+                        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                          <ModalContent>
+                            {(onClose) => (
+                              
+                              <>
+                                <ModalHeader className="flex flex-col gap-1">
+                                  Warning
+                                </ModalHeader>
+                                <ModalBody>
+                                  <p>
+                                    Do you want to delete the selected item?
+                                  </p>
+                                </ModalBody>
+                                <ModalFooter>
+                                  <Button
+                                    color="danger"
+                                    variant="light"
+                                    onPress={onClose}
+                                  >
+                                    Close
+                                  </Button>
+                                  <Button
+                                    color="warning"
+                                    variant="shadow"
+                                    onPress={onClose}
+                                  >
+                                    Delete
+                                  </Button>
+                                </ModalFooter>
+                              </>
+                            )}
+                          </ModalContent>
+                        </Modal>
                       </div>
                     </li>
                   </ol>

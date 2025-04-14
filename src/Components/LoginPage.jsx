@@ -1,7 +1,8 @@
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useState } from "react";
 import { Form, Input, Button } from "@heroui/react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { checkFields } from "../Utilities/utils";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,9 +11,8 @@ function LoginPage() {
   const [isLoad, setIsLoad] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
   const [isWrong, setIsWrong] = useState(false);
-  const [data, setData] = useState({});
-
   const navigate = useNavigate();
+
   const handleLogIn = () => {
     setIsLoad(true);
     const payLoad = {
@@ -20,7 +20,7 @@ function LoginPage() {
       password: password,
     };
 
-    if (payLoad.email !== "" && payLoad.password !== "") {
+    if (checkFields(payLoad.email, payLoad.password)) {
       axios
         .post(Base_Url, payLoad)
         .then((res) => {
@@ -30,13 +30,11 @@ function LoginPage() {
               JSON.stringify(res.data.access_token)
             );
 
-            const token = JSON.parse(localStorage.getItem("access_token"));
-
             navigate("/products");
           }
         })
         .catch((err) => {
-          console.error(err), setData(err), setIsLoad(false), setIsWrong(true);
+          console.error(err), setIsLoad(false), setIsWrong(true);
         });
     } else {
       setIsEmpty(true);
@@ -92,7 +90,9 @@ function LoginPage() {
             {isWrong ? (
               <>
                 {" "}
-                <p className="text-red-600 inline text-sm">Wrong Credentials</p>
+                <p className="text-red-600 inline text-sm">
+                  Email or Password is incorrect
+                </p>
                 <br />
               </>
             ) : (
