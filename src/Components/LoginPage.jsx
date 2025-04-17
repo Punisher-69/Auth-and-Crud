@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Button } from "@heroui/react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { checkFields } from "../Utilities/utils";
+import { Checkbox } from "@heroui/react";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const Base_Url = import.meta.env.VITE_BASE_URL;
+  const Details_Url = import.meta.env.VITE_DETAILS_URl;
   const [isLoad, setIsLoad] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
   const [isWrong, setIsWrong] = useState(false);
+  const [selected, setSelected] = useState(true);
+
+  const location = useLocation();
+
   const navigate = useNavigate();
 
-  const handleLogIn = () => {
+  const handleLogIn = (e) => {
+    e.preventDefault();
+
     setIsLoad(true);
     const payLoad = {
       email: email,
@@ -29,7 +37,31 @@ function LoginPage() {
               "access_token",
               JSON.stringify(res.data.access_token)
             );
+            const token = res.data.access_token;
 
+            const header = {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            };
+
+            axios
+              .get(Details_Url, header)
+              .then((res) => {
+                if (selected) {
+                  localStorage.setItem("email", JSON.stringify(res.data.email));
+                  localStorage.setItem(
+                    "password",
+                    JSON.stringify(res.data.password)
+                  );
+                } else {
+                  localStorage.removeItem("email");
+                  localStorage.removeItem("password");
+                }
+              })
+              .catch((err) => {
+                console.error(err);
+              });
             navigate("/products");
           }
         })
@@ -42,10 +74,25 @@ function LoginPage() {
     }
   };
 
+  const checklocation = () => {
+    if (location.pathname === "/") {
+      localStorage.removeItem("access_token");
+      setEmail(JSON.parse(localStorage.getItem("email")));
+      setPassword(JSON.parse(localStorage.getItem("password")));
+    }
+  };
+  useEffect(() => {
+    checklocation();
+  }, [location]);
+
   return (
     <div className="flex justify-center items-center">
       <div className="bg-sky-400 inline-flex  justify-center p-[50px] border rounded-md mt-[25vh]">
-        <Form className="w-full max-w-xs flex flex-col gap-4">
+        <Form
+          autoComplete="on"
+          onSubmit={handleLogIn}
+          className="w-full max-w-xs flex flex-col gap-4"
+        >
           <div className=" w-full space-y-4">
             <h1 className="text-lg font-bold font-serif text-blue-800">
               Shopping Cards
@@ -98,7 +145,10 @@ function LoginPage() {
             ) : (
               ""
             )}
-
+            <Checkbox onValueChange={() => setSelected(false)} defaultSelected>
+              Remember me
+            </Checkbox>{" "}
+            <br />
             <Button
               isLoading={isLoad}
               spinnerPlacement="end"
@@ -126,7 +176,7 @@ function LoginPage() {
               }
               color="primary"
               variant="shadow"
-              onPress={handleLogIn}
+              type="submit"
             >
               Log In
             </Button>

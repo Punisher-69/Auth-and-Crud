@@ -1,22 +1,20 @@
 import axios from "axios";
 const Dummy_Url = import.meta.env.VITE_PRODUCTS_URL;
 
-const api = axios.create({
-  
-});
 
-export const getData = () => {
-  return api.get(`${Dummy_Url}/products?limit=5`);
+
+export const getProducts = () => {
+  return axios.get(`${Dummy_Url}/products?limit=20`);
 };
 
-export const deletePost = (id) => {
-  return api.delete(`${Dummy_Url}/products/${id}`);
+export const deleteProduct = (id) => {
+  return axios.delete(`${Dummy_Url}/products/${id}`);
 };
 
-export const updateApi = (id, post) => {
-  return api.put(`${Dummy_Url}/products/${id}`, post);
+export const updateProducts = (id, post) => {
+  return axios.put(`${Dummy_Url}/products/${id}`, post);
 };
 
-export const postApi = (post) => {
-  return api.post(`${Dummy_Url}/products/add`, post);
+export const postProduct = (product) => {
+  return axios.post(`${Dummy_Url}/products`, product);
 };
